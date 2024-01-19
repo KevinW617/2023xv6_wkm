@@ -74,6 +74,29 @@ sys_sleep(void)
 int
 sys_pgaccess(void)
 {
+  uint64 va;
+  int pagenum;
+  uint64 abits;
+  argaddr(0, &va);
+  argint(1, &pagenum);
+  argaddr(2, &abits);
+
+  uint64 maskbits = 0;
+  struct proc *proc = myproc();
+  for(int i = 0; i < pagenum; i++)
+  {
+    pte_t *pte = walk(proc->pagetable, va+i*PGSIZE, 0);
+    if(pte == 0)
+      panic("page not exist.");
+    if(PTE_FLAGS(*pte) & PTE_A){
+      maskbits = maskbits | (1L << i);
+    }
+    //设置指定位（n）为指定数值（a）：先与1<<n作按位与获取第n位数，再与原数作异或，将第n位置零，再与a<<n作异或。
+    *pte = ((*pte & PTE_A) ^ (*pte)) ^ 0;
+  }
+
+  if(copyout(proc->pagetable, abits, (char*)&maskbits, sizeof(maskbits)) < 0)
+    panic("sys_pgaccess copyout error");
   // lab pgtbl: your code here.
   return 0;
 }

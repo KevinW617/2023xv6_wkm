@@ -60,10 +60,10 @@ pgaccess_test()
     err("pgaccess failed");
   buf[PGSIZE * 1] += 1;
   buf[PGSIZE * 2] += 1;
-  buf[PGSIZE * 30] += 1;
+  buf[PGSIZE * 30] += 1;  //模拟对页面的访问
   if (pgaccess(buf, 32, &abits) < 0)
     err("pgaccess failed");
-  if (abits != ((1 << 1) | (1 << 2) | (1 << 30)))
+  if (abits != ((1 << 1) | (1 << 2) | (1 << 30)))  //注意是按位或
     err("incorrect access bits set");
   free(buf);
   printf("pgaccess_test: OK\n");
