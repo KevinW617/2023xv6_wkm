@@ -49,6 +49,8 @@ usertrap(void)
   
   // save user program counter.
   p->trapframe->epc = r_sepc();
+
+  
   
   if(r_scause() == 8){
     // system call
@@ -78,7 +80,22 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
+  {
+    p->tickspassed++;
+    if(p->tickspassed == p->alarminterval)
+    {
+      p->tickspassed = 0;
+      if(p->isCalling == 0)
+      {
+        memmove(p->savedTrapframe, p->trapframe, sizeof(struct trapframe));
+        p->trapframe->epc = (uint64)p->alarmhandler;
+        p->isCalling = 1;
+      }
+    }
     yield();
+  }
+
+
 
   usertrapret();
 }
