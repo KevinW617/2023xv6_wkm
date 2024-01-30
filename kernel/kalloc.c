@@ -15,7 +15,9 @@ extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
 struct run {
-  struct run *next;
+  struct run *next; //链表存储空闲物理内存页
+//当需要分配一个物理内存页时，内存分配器会从 freelist 的头部取出一个节点，将其作为分配的物理内存页，并将 freelist 的头指针更新为下一个节点。
+//当释放一个物理内存页时，内存分配器会将该页的节点插入到 freelist 的头部，使其成为新的头节点。
 };
 
 struct {
@@ -79,4 +81,21 @@ kalloc(void)
   if(r)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
+}
+
+//sysinfo
+uint64
+free_mem_num(void)
+{
+  struct run *r;
+  uint64 free_num = 0;
+  acquire(&kmem.lock);
+  r = kmem.freelist;
+  while(r)
+  {
+    free_num++;
+    r = r->next;
+  }
+  release(&kmem.lock);
+  return free_num * 4096;
 }

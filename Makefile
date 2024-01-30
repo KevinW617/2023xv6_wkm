@@ -172,6 +172,8 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 .PRECIOUS: %.o
 
 UPROGS=\
+	$U/_sysinfotest\
+	$U/_trace\
 	$U/_cat\
 	$U/_echo\
 	$U/_forktest\
@@ -368,3 +370,6 @@ zipball: clean submit-check
 	git archive --verbose --format zip --output lab.zip HEAD
 
 .PHONY: zipball clean grade submit-check
+
+gdb:
+	gdb-multiarch kernel/kernel

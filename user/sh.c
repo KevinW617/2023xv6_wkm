@@ -122,8 +122,8 @@ runcmd(struct cmd *cmd)
     wait(0);
     break;
 
-  case BACK:
-    bcmd = (struct backcmd*)cmd;
+  case BACK: //再开一个子进程，后台运行，父进程不等待直接exit(0)
+    bcmd = (struct backcmd*)cmd; 
     if(fork1() == 0)
       runcmd(bcmd->cmd);
     break;
@@ -136,7 +136,7 @@ getcmd(char *buf, int nbuf)
 {
   write(2, "$ ", 2);
   memset(buf, 0, nbuf);
-  gets(buf, nbuf);
+  gets(buf, nbuf); //最多读nbuf个字符（字节）
   if(buf[0] == 0) // EOF
     return -1;
   return 0;
@@ -149,7 +149,7 @@ main(void)
   int fd;
 
   // Ensure that three file descriptors are open.
-  while((fd = open("console", O_RDWR)) >= 0){
+  while((fd = open("console", O_RDWR)) >= 0){  //上来先打开0,1,2三个文件描述符，并关闭其他文件描述符
     if(fd >= 3){
       close(fd);
       break;
@@ -157,17 +157,17 @@ main(void)
   }
 
   // Read and run input commands.
-  while(getcmd(buf, sizeof(buf)) >= 0){
+  while(getcmd(buf, sizeof(buf)) >= 0){ //打印"$"并读取到buf，不超过nbuf个
     if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
       // Chdir must be called by the parent, not the child.
       buf[strlen(buf)-1] = 0;  // chop \n
       if(chdir(buf+3) < 0)
-        fprintf(2, "cannot cd %s\n", buf+3);
+        fprintf(2, "cannot cd %s\n", buf+3); //cd要在父进程中执行
       continue;
     }
     if(fork1() == 0)
-      runcmd(parsecmd(buf));
-    wait(0);
+      runcmd(parsecmd(buf)); //子进程执行
+    wait(0); //父进程等待
   }
   exit(0);
 }
@@ -314,7 +314,7 @@ peek(char **ps, char *es, char *toks)
   char *s;
 
   s = *ps;
-  while(s < es && strchr(whitespace, *s))
+  while(s < es && strchr(whitespace, *s)) //若没到头，且是wehitespace类
     s++;
   *ps = s;
   return *s && strchr(toks, *s);
@@ -485,7 +485,7 @@ nulterminate(struct cmd *cmd)
     nulterminate(lcmd->right);
     break;
 
-  case BACK:
+  case BACK: 
     bcmd = (struct backcmd*)cmd;
     nulterminate(bcmd->cmd);
     break;
